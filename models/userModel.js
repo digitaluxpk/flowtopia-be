@@ -14,6 +14,17 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  confirmedCode: {
+    type: Number,
+  },
+  isConfirmed: {
+    type: Boolean,
+    default: false,
+  },
+  profileImage: {
+    type: String,
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
