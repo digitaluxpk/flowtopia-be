@@ -21,10 +21,7 @@ const userRegister = async (req, res) => {
         text: `Your confirmation code is ${code}`,
         html: `Welcome to our website, Your confirmation code is <strong>${code}</strong>`,
       };
-      const result = Email(msg);
-      if (!result) {
-        return res.status(400).json({ status: 400, message: 'Email not sent' });
-      }
+      const result =  Email(msg);
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -63,9 +60,8 @@ const confirmedCode = async (req, res) => {
       res
         .status(200)
         .json({ status: 200, message: 'User confirmed successfully' });
-    }
-    else{
-    res.status(400).json({ status: 400, message: 'Invalid code' });
+    } else {
+      res.status(400).json({ status: 400, message: 'Invalid code' });
     }
   } catch (error) {
     res.status(500).json({ message: 'Something went wrong' });
@@ -84,10 +80,9 @@ const userLogin = async (req, res) => {
       return res
         .status(400)
         .json({ status: 400, message: 'User Email is not confirmed' });
+    } else {
+      res.status(400).json({ status: 400, message: 'Email not found' });
     }
-    else{
-        res.status(400).json({ status: 400, message: 'Email not found' });
-        }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ status: 400, message: 'Wrong password' });
