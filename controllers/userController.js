@@ -71,7 +71,7 @@ const confirmedCode = async (req, res) => {
 const userLogin = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    res.status(400).json({ status: 400, message: 'All fields are required' });
+   return res.status(400).json({ status: 400, message: 'All fields are required' });
   }
   const user = await User.findOne({ email });
 
@@ -80,9 +80,7 @@ const userLogin = async (req, res) => {
       return res
         .status(400)
         .json({ status: 400, message: 'User Email is not confirmed' });
-    } else {
-      res.status(400).json({ status: 400, message: 'Email not found' });
-    }
+    } 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ status: 400, message: 'Wrong password' });
@@ -92,7 +90,7 @@ const userLogin = async (req, res) => {
     delete user._doc.password;
     res.status(200).json({ status: 200, token, user });
   } else {
-    res.status(400).json({ status: 400, message: 'Email not found' });
+   return res.status(400).json({ status: 400, message: 'Email not found' });
   }
 };
 module.exports = {
