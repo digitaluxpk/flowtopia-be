@@ -135,7 +135,7 @@ const forgotPassword = async (req, res) => {
     const resetUrlToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/token=${resetUrlToken}`;
+    const resetUrl = `${process.env.CLIENT_URL}/setnewpassword/token=${resetUrlToken}`;
     const msg = {
       to: email,
       from: process.env.ADMINEMAIL,
