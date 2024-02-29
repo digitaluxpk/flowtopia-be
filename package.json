@@ -28,6 +28,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
     "husky": "^9.0.11",
     "intrinio-sdk": "^6.26.8",
     "jsonwebtoken": "^9.0.2",

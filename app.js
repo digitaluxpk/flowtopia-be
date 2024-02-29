@@ -1,10 +1,16 @@
 const express = require("express");
 const app = express();
 require("dotenv").config();
+const helmet = require("helmet");
 
 const cors = require("cors");
 const { connectToMongoDB } = require("./database/db");
 const userRoutes = require("./routes/userRoutes");
+const { realTimeData } = require("./controllers/chartsData");
+
+// Middlewares
+app.use(helmet());
+
 app.use(
     cors({
         origin: "*",
@@ -12,11 +18,13 @@ app.use(
     })
 );
 // const {SSE} = require('sse');
-const { realTimeData } = require("./controllers/chartsData");
+// const { realTimeData } = require("./controllers/chartsData");
 const WebSocket = require("ws");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Database connection
 connectToMongoDB();
 
 // Routes
