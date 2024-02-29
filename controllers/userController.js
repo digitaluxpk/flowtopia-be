@@ -2,13 +2,16 @@ const { Email } = require("../helpers/email");
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { validationResult } = require("express-validator");
 
 const userRegister = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        if (!name || !email || !password) {
-            res.status(400).json({ status: 400, message: "All fields are required" });
+        // Add express-validator checks here
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ status: 400, message: errors.array() });
         }
+        const { name, email, password } = req.body;
         const userExists = await User.findOne({ email });
         if (userExists) {
             res.status(400).json({ status: 400, message: "User already exists" });
@@ -40,16 +43,19 @@ const userRegister = async (req, res) => {
             });
         }
     } catch (error) {
-        res.status(500).json({ message: "Something went wrong" });
+        res.status(500).json({ error: error.message });
     }
 };
 
 const confirmedCode = async (req, res) => {
+    // Add express-validator checks here
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ status: 400, message: errors.array() });
+    }
+
     const { email, code } = req.body;
     try {
-        if (!email || !code) {
-            res.status(400).json({ status: 400, message: "All fields are required" });
-        }
 
         const user = await User.findOne({ email, confirmedCode: code });
 
@@ -69,10 +75,13 @@ const confirmedCode = async (req, res) => {
 };
 
 const resendCode = async (req, res) => {
-    const { email } = req.body;
-    if (!email) {
-        return res.status(400).json({ status: 400, message: "Email is required" });
+    // Add express-validator checks here
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ status: 400, message: errors.array() });
     }
+
+    const { email } = req.body;
     const user = await User.findOne({ email });
     if (user) {
         const code = Math.floor(Math.random() * 9000) + 1000;
@@ -96,12 +105,13 @@ const resendCode = async (req, res) => {
 };
 
 const userLogin = async (req, res) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
-        return res
-            .status(400)
-            .json({ status: 400, message: "All fields are required" });
+    // Add express-validator checks here
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ status: 400, message: errors.array() });
     }
+    const { email, password } = req.body;
+
     const user = await User.findOne({ email });
 
     if (user) {
@@ -124,10 +134,12 @@ const userLogin = async (req, res) => {
 };
 
 const forgotPassword = async (req, res) => {
-    const { email } = req.body;
-    if (!email) {
-        return res.status(400).json({ status: 400, message: "Email is required" });
+    // Add express-validator checks here
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ status: 400, message: errors.array() });
     }
+    const { email } = req.body;
     const user = await User.findOne({
         email
     });
@@ -153,15 +165,15 @@ const forgotPassword = async (req, res) => {
 };
 
 const resetPassword = async (req, res) => {
+    // Add express-validator checks here
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ status: 400, message: errors.array() });
+    }
     try {
         const { password } = req.body;
         const { token } = req.params;
 
-        if (!token || !password) {
-            return res
-                .status(400)
-                .json({ status: 400, message: "All fields are required" });
-        }
         const decoded = await jwt.verify(token, process.env.JWT_SECRET);
 
         const user = await User.findById(decoded.id);
