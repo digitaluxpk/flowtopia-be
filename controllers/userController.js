@@ -155,13 +155,14 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
     try {
         const { password } = req.body;
-        const token = req.params.token;
+        const { token } = req.params;
+
         if (!token || !password) {
             return res
                 .status(400)
                 .json({ status: 400, message: "All fields are required" });
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = await jwt.verify(token, process.env.JWT_SECRET);
 
         const user = await User.findById(decoded.id);
 
@@ -178,7 +179,7 @@ const resetPassword = async (req, res) => {
     } catch (error) {
         return res
             .status(500)
-            .json({ status: 500, message: "Internal server error" });
+            .json({ status: 500, message: "Token expired or invalid" });
     }
 };
 

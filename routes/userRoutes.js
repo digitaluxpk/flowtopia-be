@@ -14,6 +14,6 @@ router.post("/auth/confirmed", confirmedCode);
 router.post("/login", userLogin);
 router.post("/forgotpassword", forgotPassword);
 router.post("/resendcode", resendCode);
-router.post("/resetpassword/token=:token", resetPassword);
+router.post("/resetpassword/:token", resetPassword);
 
 module.exports = router;
