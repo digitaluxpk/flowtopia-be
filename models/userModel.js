@@ -24,10 +24,46 @@ const userSchema = new mongoose.Schema({
     profileImage: {
         type: String
     },
+    phoneNumber: {
+        type: String
+    },
+
+    address: {
+        city: {
+            type: String
+        },
+        state: {
+            type: String
+        },
+        country: {
+            type: String
+        },
+        postalCode: {
+            type: String
+        },
+        fullAddress: {
+            type: String
+        }
+
+    },
+
+    settings: {
+        darkMode: {
+            type: String,
+            default: "light"
+        },
+        notificationPreference: {
+            type: String,
+            default: "english"
+        }
+    },
 
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    updatedAt: {
+        type: Date
     }
 });
 
