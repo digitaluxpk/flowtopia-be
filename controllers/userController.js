@@ -24,7 +24,11 @@ const userRegister = async (req, res) => {
                 text: `Your confirmation code is ${code}`,
                 html: `Welcome to our website, Your confirmation code is <strong>${code}</strong>`
             };
-            const result = Email(msg);
+            const result =await Email(msg);
+
+            if (!result){
+                return res.status(404).json({ status: 404, message: "Email not sent try again later" });
+            }
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -93,7 +97,11 @@ const resendCode = async (req, res) => {
             html: `Welcome to our website, Your confirmation code is <strong>${code}</strong>`
         };
 
-        const result = Email(msg);
+        const result =await Email(msg);
+
+        if (!result){
+            return res.status(404).json({ status: 404, message: "Email not sent try again later" });
+        }
         user.confirmedCode = code;
         await user.save();
         return res.status(200).json({
@@ -150,12 +158,16 @@ const forgotPassword = async (req, res) => {
         const resetUrl = `${process.env.CLIENT_URL}/setnewpassword?token=${resetUrlToken}`;
         const msg = {
             to: email,
-            from: process.env.ADMINEMAIL,
+            from: process.env.RESET_PASSWORD_SENDER_EMAIL,
             subject: "Reset Password",
             text: `Reset your password by clicking on this link ${resetUrl}`,
             html: `Reset your password by clicking on this link <a href="${resetUrl}">${resetUrl}</a>`
         };
-        const result = Email(msg);
+        const result =await Email(msg);
+
+        if (!result){
+            return res.status(404).json({ status: 404, message: "Email not sent try again later" });
+        }
         return res.status(200).json({
             status: 200,
             message: "Check your email for reset link"
