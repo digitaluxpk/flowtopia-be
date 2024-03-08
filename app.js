@@ -9,14 +9,12 @@ const userRoutes = require("./routes/userRoutes");
 
 // Middlewares
 app.use(helmet());
-
 app.use(
     cors({
         origin: "*",
         credentials: true
     })
 );
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -24,10 +22,13 @@ app.use(express.urlencoded({ extended: true }));
 connectToMongoDB();
 
 // Routes
+app.get("/", (req, res) => {
+    res.send("Welcome to the API");
+});
 app.use("/api/user", userRoutes);
 
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
-    // console.log(`Server is running at port ${port}`);
+    console.log(`Server is running at port ${port}`);
 });
