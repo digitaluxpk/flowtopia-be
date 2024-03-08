@@ -31,7 +31,6 @@
     "express-validator": "^7.0.1",
     "helmet": "^7.1.0",
     "husky": "^9.0.11",
-    "intrinio-sdk": "^6.26.8",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.3.0",
     "mongoose": "^8.1.3",
