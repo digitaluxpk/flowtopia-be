@@ -1,5 +1,8 @@
 const express = require("express");
 const { check } = require("express-validator");
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 const router = express.Router();
 
 const {
@@ -8,8 +11,10 @@ const {
     confirmedCode,
     forgotPassword,
     resetPassword,
-    resendCode
+    resendCode,
+    uploadImage
 } = require("../controllers/userController");
+const jwtMiddleware = require("../middlewares/jwtMiddleware");
 
 router.post("/register", [
     // Add express-validator checks here
@@ -46,5 +51,8 @@ router.post("/resetpassword/:token", [
     // Add express-validator checks here
     check("password").isLength({ min: 6 })
 ], resetPassword);
+
+//image upload
+router.post("/upload", jwtMiddleware, upload.single("profileImage"), uploadImage);
 
 module.exports = router;

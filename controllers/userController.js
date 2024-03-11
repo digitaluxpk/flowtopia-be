@@ -3,6 +3,7 @@ const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
+const uploadToS3 = require("../helpers/uploadToS3");
 
 const userRegister = async (req, res) => {
     try {
@@ -207,11 +208,40 @@ const resetPassword = async (req, res) => {
     }
 };
 
+const uploadImage=async (req, res) => {
+    try {
+        const file = req.file;
+        const id = req.user._id;
+        // Upload file to S3
+        const s3Response = await uploadToS3(file);
+
+        if (!s3Response) {
+            return res.status(404).json({ status:404, message: "Profile image upload failed" });
+        }
+        // Update user's profileImage in MongoDB
+
+        const user = await User.findOneAndUpdate(
+            { _id: id },
+            { profileImage: s3Response.Location },
+            { new: true }
+        );
+
+        await user.save();
+        delete user._doc.password;
+
+        res.status(200).json({ message: "Profile image uploaded successfully" });
+    } catch (error) {
+
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 module.exports = {
     userRegister,
     confirmedCode,
     resendCode,
     userLogin,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    uploadImage
 };

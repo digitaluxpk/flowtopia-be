@@ -32,6 +32,40 @@ const userSchema = new mongoose.Schema({
     },
     description:{
         type:String
+    },
+    address: {
+        city: {
+            type: String
+        },
+        state: {
+            type: String
+        },
+        country: {
+            type: String
+        },
+        postalCode: {
+            type: String
+        },
+        fullAddress: {
+            type: String
+        }
+
+    },
+
+    settings: {
+        darkMode: {
+            type: String,
+            default: "light"
+        },
+        notificationPreference: {
+            type: String,
+            default: "english"
+        }
+    },
+
+    updated_at: {
+        type: Date,
+        default: null
     }
 });
 
