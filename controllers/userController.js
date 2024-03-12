@@ -236,6 +236,34 @@ const uploadImage=async (req, res) => {
     }
 };
 
+const userUpdatePersonalInfo = async (req, res) => {
+    try {
+        const id = req.user._id;
+        const { name, email, phoneNumbar, city, state, country, postalCode, fullAddress } = req.body;
+
+        const user = await User.findOneAndUpdate(
+            { _id: id },
+            {
+                name,
+                email,
+                phoneNumbar,
+                address: { city, state, country, postalCode, fullAddress }
+
+            },
+            { new: true }
+        );
+
+        await user.save();
+        // Remove password ,confirmedCode and isConfirmed from user object
+        delete user._doc.password;
+        delete user._doc.confirmedCode;
+        delete user._doc.isConfirmed;
+        res.status(200).json({ message: "User updated successfully", user });
+    } catch (error) {
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 module.exports = {
     userRegister,
     confirmedCode,
@@ -243,5 +271,6 @@ module.exports = {
     userLogin,
     forgotPassword,
     resetPassword,
-    uploadImage
+    uploadImage,
+    userUpdatePersonalInfo
 };

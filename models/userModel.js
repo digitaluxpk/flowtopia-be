@@ -51,6 +51,11 @@ const userSchema = new mongoose.Schema({
         }
 
     },
+    phoneNumbar: {
+        type: String,
+        default: null
+
+    },
 
     settings: {
         darkMode: {

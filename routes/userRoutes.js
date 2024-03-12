@@ -12,7 +12,8 @@ const {
     forgotPassword,
     resetPassword,
     resendCode,
-    uploadImage
+    uploadImage,
+    userUpdatePersonalInfo
 } = require("../controllers/userController");
 const jwtMiddleware = require("../middlewares/jwtMiddleware");
 
@@ -51,7 +52,8 @@ router.post("/resetpassword/:token", [
     // Add express-validator checks here
     check("password").isLength({ min: 6 })
 ], resetPassword);
-
+//update user profile
+router.put("/updatepersonalinfo", jwtMiddleware,  userUpdatePersonalInfo);
 //image upload
 router.post("/upload", jwtMiddleware, upload.single("profileImage"), uploadImage);
 
