@@ -267,7 +267,6 @@ const userUpdatePersonalInfo = async (req, res) => {
 const userUpdatePassword = async (req, res) => {
     try {
         const id = req.user._id;
-        console.log(id);
         const { oldPassword, newPassword } = req.body;
         const user = await User.findById(id);
         const isMatch = await bcrypt.compare(oldPassword, user.password);
@@ -277,11 +276,9 @@ const userUpdatePassword = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
         user.password = hashedPassword;
-        console.log(user);
         await user.save();
         return res.status(200).json({ status: 200, message: "Password updated successfully" });
     } catch (error) {
-        console.log(error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
