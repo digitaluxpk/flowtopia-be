@@ -263,6 +263,28 @@ const userUpdatePersonalInfo = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+//update user password
+const userUpdatePassword = async (req, res) => {
+    try {
+        const id = req.user._id;
+        console.log(id);
+        const { oldPassword, newPassword } = req.body;
+        const user = await User.findById(id);
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ status: 400, message: "Wrong password" });
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+        user.password = hashedPassword;
+        console.log(user);
+        await user.save();
+        return res.status(200).json({ status: 200, message: "Password updated successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
 
 module.exports = {
     userRegister,
@@ -272,5 +294,6 @@ module.exports = {
     forgotPassword,
     resetPassword,
     uploadImage,
-    userUpdatePersonalInfo
+    userUpdatePersonalInfo,
+    userUpdatePassword
 };

@@ -13,7 +13,8 @@ const {
     resetPassword,
     resendCode,
     uploadImage,
-    userUpdatePersonalInfo
+    userUpdatePersonalInfo,
+    userUpdatePassword
 } = require("../controllers/userController");
 const jwtMiddleware = require("../middlewares/jwtMiddleware");
 
@@ -54,6 +55,9 @@ router.post("/resetpassword/:token", [
 ], resetPassword);
 //update user profile
 router.put("/updatepersonalinfo", jwtMiddleware,  userUpdatePersonalInfo);
+//update user password
+router.put("/updatepassword", jwtMiddleware, userUpdatePassword);
+
 //image upload
 router.post("/upload", jwtMiddleware, upload.single("profileImage"), uploadImage);
 
