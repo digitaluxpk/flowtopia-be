@@ -14,7 +14,8 @@ const {
     resendCode,
     uploadImage,
     userUpdatePersonalInfo,
-    userUpdatePassword
+    userUpdatePassword,
+    userUpdateEmployment
 } = require("../controllers/userController");
 const jwtMiddleware = require("../middlewares/jwtMiddleware");
 
@@ -60,5 +61,8 @@ router.put("/updatepassword", jwtMiddleware, userUpdatePassword);
 
 //image upload
 router.post("/upload", jwtMiddleware, upload.single("profileImage"), uploadImage);
+
+//update user employment or affiliation or flowtopiaTerms
+router.put("/updateemploymentandterm", jwtMiddleware, userUpdateEmployment);
 
 module.exports = router;

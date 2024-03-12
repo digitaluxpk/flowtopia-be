@@ -239,21 +239,27 @@ const uploadImage=async (req, res) => {
 const userUpdatePersonalInfo = async (req, res) => {
     try {
         const id = req.user._id;
-        const { name, email, phoneNumbar, city, state, country, postalCode, fullAddress } = req.body;
+        const { name, email, phoneNumbar, address } = req.body;
 
-        const user = await User.findOneAndUpdate(
-            { _id: id },
-            {
-                name,
-                email,
-                phoneNumbar,
-                address: { city, state, country, postalCode, fullAddress }
+        let user = await User.findById(id);
+        if (!user) {
+            return res.status(400).json({ status: 400, message: "User not found" });
+        }
+        user= await User.findByIdAndUpdate(id, {
+            $set: {
+                name: name || user.name,
+                email: email || user.email,
+                phoneNumbar: phoneNumbar || user.phoneNumbar,
+                address: {
+                    city: address?.city || user.address?.city,
+                    state: address?.state || user.address?.state,
+                    country: address?.country || user.address?.country,
+                    postalCode: address?.postalCode || user.address?.postalCode,
+                    fullAddress: address?.fullAddress || user.address?.fullAddress
 
-            },
-            { new: true }
-        );
-
-        await user.save();
+                }
+            }
+        }, { new: true });
         // Remove password ,confirmedCode and isConfirmed from user object
         delete user._doc.password;
         delete user._doc.confirmedCode;
@@ -283,6 +289,44 @@ const userUpdatePassword = async (req, res) => {
     }
 };
 
+// Update user employment or affiliation or flowtopiaTerms
+const userUpdateEmployment = async (req, res) => {
+    try {
+        const id = req.user._id;
+        const { employmentStatus, businessName, NatureOfBusiness, affiliation, flowtopiaTerms } = req.body;
+        let user = await User.findById(id);
+        if (!user) {
+            return res.status(400).json({ status: 400, message: "User not found" });
+        }
+        user = await User.findByIdAndUpdate(id, {
+            $set: {
+                affiliation: {
+                    q1: affiliation?.q1 || user.affiliation?.q1,
+                    q2: affiliation?.q2 || user.affiliation?.q2,
+                    q3: affiliation?.q3 || user.affiliation?.q3
+                },
+                employmentStatus: employmentStatus || user.employmentStatus,
+                businessName: businessName || user.businessName,
+                NatureOfBusiness: NatureOfBusiness || user.NatureOfBusiness,
+                flowtopiaTerms: flowtopiaTerms || user.flowtopiaTerms
+            }
+        }, { new: true });
+
+        if (!user) {
+            return res.status(400).json({ status: 400, message: "User not found" });
+        }
+
+        // Remove password, confirmedCode, and isConfirmed from user object
+        delete user._doc.password;
+        delete user._doc.confirmedCode;
+        delete user._doc.isConfirmed;
+
+        res.status(200).json({ message: "User updated successfully", user });
+    } catch (error) {
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 module.exports = {
     userRegister,
     confirmedCode,
@@ -292,5 +336,6 @@ module.exports = {
     resetPassword,
     uploadImage,
     userUpdatePersonalInfo,
-    userUpdatePassword
+    userUpdatePassword,
+    userUpdateEmployment
 };
