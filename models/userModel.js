@@ -15,19 +15,23 @@ const userSchema = new mongoose.Schema({
         required: true
     },
     confirmedCode: {
-        type: Number
+        type: Number,
+        default: null
     },
     isConfirmed: {
         type: Boolean,
         default: false
     },
     profileImage: {
-        type: String
+        type: String,
+        default: null
     },
-
-    createdAt: {
+    created_at: {
         type: Date,
         default: Date.now
+    },
+    description:{
+        type:String
     }
 });
 
