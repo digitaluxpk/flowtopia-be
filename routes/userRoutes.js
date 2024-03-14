@@ -1,8 +1,6 @@
 const express = require("express");
 const { check } = require("express-validator");
-const multer = require("multer");
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = require("../middlewares/uploadMiddleware");
 const router = express.Router();
 
 const {

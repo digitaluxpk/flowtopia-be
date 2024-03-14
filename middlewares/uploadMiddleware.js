@@ -1,15 +1,18 @@
 const multer = require("multer");
-// Configure multer storage
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, "uploads/");
+
+const storage = multer.memoryStorage();
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 1024 * 1024 * 5
     },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + "-" + file.originalname);
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === "image/png" || file.mimetype === "image/jpeg") {
+            cb(null, true);
+        } else {
+            cb(new Error("Invalid file type. Only JPEG or PNG is allowed"));
+        }
     }
 });
-
-// Create multer upload instance
-const upload = multer({ storage: storage });
 
 module.exports = upload;
