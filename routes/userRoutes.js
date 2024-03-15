@@ -13,10 +13,13 @@ const {
     uploadImage,
     userUpdatePersonalInfo,
     userUpdatePassword,
-    userUpdateEmployment
+    userUpdateEmployment,
+    getUserProfile
 } = require("../controllers/userController");
 const jwtMiddleware = require("../middlewares/jwtMiddleware");
 
+//get user profile
+router.get("/", jwtMiddleware, getUserProfile);
 router.post("/register", [
     // Add express-validator checks here
     check("name").not().isEmpty(),
