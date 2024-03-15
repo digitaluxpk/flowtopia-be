@@ -312,16 +312,14 @@ const userUpdateEmployment = async (req, res) => {
                 NatureOfBusiness: NatureOfBusiness || user.NatureOfBusiness,
                 flowtopiaTerms: flowtopiaTerms || user.flowtopiaTerms
             }
-        }, { new: true });
+        }, { new: true }).select("-password -confirmedCode -isConfirmed -id -created_at -updated_at -__v -_id");
 
         if (!user) {
             return res.status(400).json({ status: 400, message: "User not found" });
         }
 
         // Remove password, confirmedCode, and isConfirmed from user object
-        delete user._doc.password;
-        delete user._doc.confirmedCode;
-        delete user._doc.isConfirmed;
+       
 
         res.status(200).json({ message: "User updated successfully", user });
     } catch (error) {
@@ -329,6 +327,15 @@ const userUpdateEmployment = async (req, res) => {
     }
 };
 
+const getUserProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select("-password -confirmedCode -isConfirmed -id -created_at -updated_at -__v -_id");
+        const address = await Address.findOne({ userid: req.user._id }).select("-_id -userid -__v");
+        res.status(200).json({ user, address });
+    } catch (error) {
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
 module.exports = {
     userRegister,
     confirmedCode,
@@ -339,5 +346,6 @@ module.exports = {
     uploadImage,
     userUpdatePersonalInfo,
     userUpdatePassword,
-    userUpdateEmployment
+    userUpdateEmployment,
+    getUserProfile
 };
