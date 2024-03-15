@@ -3,6 +3,8 @@ const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
+const uploadToS3 = require("../helpers/uploadToS3");
+const Address = require("../models/addressModel");
 
 const userRegister = async (req, res) => {
     try {
@@ -207,11 +209,135 @@ const resetPassword = async (req, res) => {
     }
 };
 
+const uploadImage=async (req, res) => {
+    try {
+        const file = req.file;
+        const id = req.user._id;
+        // Upload file to S3
+        const s3Response = await uploadToS3(file);
+
+        if (!s3Response) {
+            return res.status(404).json({ status:404, message: "Profile image upload failed" });
+        }
+        // Update user's profileImage in MongoDB
+
+        const user = await User.findOneAndUpdate(
+            { _id: id },
+            { profileImage: s3Response.Location },
+            { new: true }
+        );
+
+        await user.save();
+        delete user._doc.password;
+
+        res.status(200).json({ message: "Profile image uploaded successfully" });
+    } catch (error) {
+
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+const userUpdatePersonalInfo = async (req, res) => {
+    const userId = req.user._id;
+    const { name, phoneNumbar, address, email } = req.body;
+
+    try {
+        // Check if the provided email is already associated with another user
+        if (email) {
+            const userExists = await User.exists({ email: email });
+            if (userExists) {
+                return res.status(400).json({ status: 400, message: "User already exists" });
+            }
+        }
+
+        // Update user data
+        const updatedUser = await User.findByIdAndUpdate(userId, { name, phoneNumbar, email }, { new: true })
+            .select("-password -confirmedCode -isConfirmed -id -created_at -updated_at -__v -_id");
+
+        // Find or create address data for the user
+        let userAddress = await Address.findOneAndUpdate({ userid: userId }, { ...address }, { new: true });
+
+        if (!userAddress) {
+            userAddress = new Address({
+                userid: userId,
+                ...address
+            });
+            await userAddress.save();
+        }
+
+        res.status(200).json({ user: updatedUser, address: userAddress });
+    } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+//update user password
+const userUpdatePassword = async (req, res) => {
+    try {
+        const id = req.user._id;
+        const { oldPassword, newPassword } = req.body;
+        const user = await User.findById(id);
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ status: 400, message: "Wrong password" });
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+        user.password = hashedPassword;
+        await user.save();
+        return res.status(200).json({ status: 200, message: "Password updated successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+// Update user employment or affiliation or flowtopiaTerms
+const userUpdateEmployment = async (req, res) => {
+    try {
+        const id = req.user._id;
+        const { employmentStatus, businessName, NatureOfBusiness, affiliation, flowtopiaTerms } = req.body;
+        let user = await User.findById(id);
+        if (!user) {
+            return res.status(400).json({ status: 400, message: "User not found" });
+        }
+        user = await User.findByIdAndUpdate(id, {
+            $set: {
+                affiliation: {
+                    q1: affiliation?.q1 || user.affiliation?.q1,
+                    q2: affiliation?.q2 || user.affiliation?.q2,
+                    q3: affiliation?.q3 || user.affiliation?.q3
+                },
+                employmentStatus: employmentStatus || user.employmentStatus,
+                businessName: businessName || user.businessName,
+                NatureOfBusiness: NatureOfBusiness || user.NatureOfBusiness,
+                flowtopiaTerms: flowtopiaTerms || user.flowtopiaTerms
+            }
+        }, { new: true });
+
+        if (!user) {
+            return res.status(400).json({ status: 400, message: "User not found" });
+        }
+
+        // Remove password, confirmedCode, and isConfirmed from user object
+        delete user._doc.password;
+        delete user._doc.confirmedCode;
+        delete user._doc.isConfirmed;
+
+        res.status(200).json({ message: "User updated successfully", user });
+    } catch (error) {
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 module.exports = {
     userRegister,
     confirmedCode,
     resendCode,
     userLogin,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    uploadImage,
+    userUpdatePersonalInfo,
+    userUpdatePassword,
+    userUpdateEmployment
 };

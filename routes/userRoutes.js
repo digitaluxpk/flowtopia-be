@@ -1,5 +1,6 @@
 const express = require("express");
 const { check } = require("express-validator");
+const upload = require("../middlewares/uploadMiddleware");
 const router = express.Router();
 
 const {
@@ -8,8 +9,13 @@ const {
     confirmedCode,
     forgotPassword,
     resetPassword,
-    resendCode
+    resendCode,
+    uploadImage,
+    userUpdatePersonalInfo,
+    userUpdatePassword,
+    userUpdateEmployment
 } = require("../controllers/userController");
+const jwtMiddleware = require("../middlewares/jwtMiddleware");
 
 router.post("/register", [
     // Add express-validator checks here
@@ -46,5 +52,15 @@ router.post("/resetpassword/:token", [
     // Add express-validator checks here
     check("password").isLength({ min: 6 })
 ], resetPassword);
+//update user profile
+router.put("/updatepersonalinfo", jwtMiddleware,  userUpdatePersonalInfo);
+//update user password
+router.put("/updatepassword", jwtMiddleware, userUpdatePassword);
+
+//image upload
+router.post("/upload", jwtMiddleware, upload.single("profileImage"), uploadImage);
+
+//update user employment or affiliation or flowtopiaTerms
+router.put("/updateemploymentandterm", jwtMiddleware, userUpdateEmployment);
 
 module.exports = router;
