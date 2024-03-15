@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const uploadToS3 = require("../helpers/uploadToS3");
+const Address = require("../models/addressModel");
 
 const userRegister = async (req, res) => {
     try {
@@ -237,35 +238,36 @@ const uploadImage=async (req, res) => {
 };
 
 const userUpdatePersonalInfo = async (req, res) => {
+    const userId = req.user._id;
+    const { name, phoneNumbar, address, email } = req.body;
+
     try {
-        const id = req.user._id;
-        const { name, email, phoneNumbar, address } = req.body;
-
-        let user = await User.findById(id);
-        if (!user) {
-            return res.status(400).json({ status: 400, message: "User not found" });
-        }
-        user= await User.findByIdAndUpdate(id, {
-            $set: {
-                name: name || user.name,
-                email: email || user.email,
-                phoneNumbar: phoneNumbar || user.phoneNumbar,
-                address: {
-                    city: address?.city || user.address?.city,
-                    state: address?.state || user.address?.state,
-                    country: address?.country || user.address?.country,
-                    postalCode: address?.postalCode || user.address?.postalCode,
-                    fullAddress: address?.fullAddress || user.address?.fullAddress
-
-                }
+        // Check if the provided email is already associated with another user
+        if (email) {
+            const userExists = await User.exists({ email: email });
+            if (userExists) {
+                return res.status(400).json({ status: 400, message: "User already exists" });
             }
-        }, { new: true });
-        // Remove password ,confirmedCode and isConfirmed from user object
-        delete user._doc.password;
-        delete user._doc.confirmedCode;
-        delete user._doc.isConfirmed;
-        res.status(200).json({ message: "User updated successfully", user });
+        }
+
+        // Update user data
+        const updatedUser = await User.findByIdAndUpdate(userId, { name, phoneNumbar, email }, { new: true })
+            .select("-password -confirmedCode -isConfirmed -id -created_at -updated_at -__v -_id");
+
+        // Find or create address data for the user
+        let userAddress = await Address.findOneAndUpdate({ userid: userId }, { ...address }, { new: true });
+
+        if (!userAddress) {
+            userAddress = new Address({
+                userid: userId,
+                ...address
+            });
+            await userAddress.save();
+        }
+
+        res.status(200).json({ user: updatedUser, address: userAddress });
     } catch (error) {
+        console.error("Error updating user:", error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };

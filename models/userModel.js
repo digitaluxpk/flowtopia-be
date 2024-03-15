@@ -33,24 +33,6 @@ const userSchema = new mongoose.Schema({
     description:{
         type:String
     },
-    address: {
-        city: {
-            type: String
-        },
-        state: {
-            type: String
-        },
-        country: {
-            type: String
-        },
-        postalCode: {
-            type: String
-        },
-        fullAddress: {
-            type: String
-        }
-
-    },
     phoneNumbar: {
         type: String,
         default: null
