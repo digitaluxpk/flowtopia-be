@@ -13,7 +13,12 @@ const io = socketIo(server);
 
 // Socket.IO connection event
 io.on("connection", (socket) => {
-    console.log("A user csonnected");
+    console.log("A user connected");
+    // Socket disconnect event
+    socket.on("disconnect", () => {
+        console.log("user disconnected");
+        io.emit("userDisconnected", "A user disconnected");
+    });
     socket.on("getRealTimeData", async () => {
         emitRealTimeData(socket);
     });
