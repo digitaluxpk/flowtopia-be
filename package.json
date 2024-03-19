@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "nodemon app.js",
+    "start:prod": "pm2 start app.js --name 'flowtopia-be'",
     "dev": "nodemon app.js",
     "build": "node app.js",
     "lint-staged": "eslint --staged",
