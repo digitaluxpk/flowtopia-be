@@ -3,7 +3,7 @@ const OptionsData = require("../models/optionsdataModel");
 const emitRealTimeData = async (socket) => {
     try {
         // const timestampThreshold = Date.now() - (4 * 60 * 60 * 1000); // Example: Retrieve data updated within the last minute
-        const data = await OptionsData.find({ underlying_symbol: { $nin: [ "SPX" , "SPXW" ] } }).sort({ timestamp: -1 }).limit(500);
+        const data = await OptionsData.find({ underlying_symbol: { $nin: [ "SPX" , "SPXW" ] } }).sort({ timestamp: -1 }).limit(100);
         socket.emit( "realTimeDataResponse", data);
     }
     catch (error) {
@@ -17,7 +17,7 @@ const watchOptionsDataChanges = async (io) => {
         const changeStream = OptionsData.watch();
 
         changeStream.on("change", (change) => {
-            io.emit("realTimeDatas", change.fullDocument);
+            io.emit("realTimeData", change.fullDocument);
         });
     } catch (error) {
         console.error("Error watching options data changes:", error);
