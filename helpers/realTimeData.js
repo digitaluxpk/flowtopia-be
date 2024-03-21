@@ -14,10 +14,28 @@ const emitRealTimeData = async (socket) => {
 // Listen for changes in the MongoDB collection using change streams
 const watchOptionsDataChanges = async (io) => {
     try {
-        const changeStream = OptionsData.watch();
+        const changeStream = await OptionsData.watch();
 
-        changeStream.on("change", (change) => {
-            io.emit("realTimeData", change.fullDocument);
+        // Error handling for the change stream
+        changeStream.on("error", (error) => {
+            console.error("Change stream error:", error);
+            io.emit("realTimeDataError", { error: "Internal Server Error" });
+        });
+
+        // Use async/await with changeStream.on to handle async operations
+        changeStream.on("change", async (change) => {
+            if (change.operationType === "insert") {
+                try {
+                    const data = await OptionsData.findOne({ _id: change.documentKey._id, underlying_symbol: { $nin: [ "SPX" , "SPXW" ] } });
+                    console.log("RealTimeData:", data);
+                    if (data) {
+                        io.emit("realTimeDataUpdate", data);
+                    }
+                } catch (error) {
+                    console.error("Error processing change:", error);
+                    io.emit("realTimeDataError", {status:500, error: "Internal Server Error" });
+                }
+            }
         });
     } catch (error) {
         console.error("Error watching options data changes:", error);
