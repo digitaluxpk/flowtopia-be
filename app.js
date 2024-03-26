@@ -10,6 +10,8 @@ const server = createServer(app);
 const socketIo = require("socket.io");
 const { emitRealTimeData, watchOptionsDataChanges } = require("./helpers/realTimeData");
 const io = socketIo(server);
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 // Socket.IO connection event
 io.on("connection", (socket) => {
@@ -44,6 +46,8 @@ app.get("/", (req, res) => {
     res.json({ message: "Welcome to the Flowtopia API" });
 });
 app.use("/api/user", userRoutes);
+app.use("/api/subscription", subscriptionRoutes);
+app.use("/api", paymentRoutes);
 
 // Server
 const port = process.env.PORT || 3000;
