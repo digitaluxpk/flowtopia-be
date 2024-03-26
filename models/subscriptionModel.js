@@ -17,7 +17,7 @@ const subscriptionSchema = new mongoose.Schema({
     endDate: {
         type: Date
     },
-    createdAt: {
+    startDate: {
         type: Date,
         default: Date.now
     }
