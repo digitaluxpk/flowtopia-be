@@ -84,6 +84,10 @@ const userSchema = new mongoose.Schema({
     flowtopiaTerms:{
         type:Boolean,
         default:false
+    },
+    subscriptionStatus:{
+        type:Boolean,
+        default:false
     }
 });
 
