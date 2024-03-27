@@ -58,7 +58,7 @@ const webhook= async (req, res) => {
         // Handle the payment success event
         if (event.type === "checkout.session.completed" || event.type === "payment_intent.succeeded" || event.type === "invoice.payment_succeeded") {
             await Subscription.create(
-                { userId: customerId, status: "active", endDate: new Date(new Date().setDate(new Date().getDate() + 30)), startDate: new Date(), type: "monthly" },
+                { userId: customerId, isActive:true, endDate: new Date(new Date().setDate(new Date().getDate() + 30)), startDate: new Date(), type: "monthly" },
                 { new: true }
             );
 
