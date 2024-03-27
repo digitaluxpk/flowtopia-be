@@ -7,8 +7,8 @@ const subscriptionSchema = new mongoose.Schema({
         ref: "User"
     },
 
-    status: {
-        type: String
+    isActive: {
+        type: Boolean
     },
     type: {
         type: String
