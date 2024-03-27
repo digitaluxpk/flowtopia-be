@@ -50,6 +50,7 @@ const webhook= async (req, res) => {
 
         // Handle the payment failure event
         if (event.type === "charge.failed" || event.type === "charge.expired" || event.type === "payment_intent.payment_failed" || event.type === "invoice.payment_failed") {
+            await User.findOneAndUpdate({ _id: customerId }, { subscriptionStatus: false });
 
             res.status(404).json({ status: 404, message: "Payment failed" });
 
