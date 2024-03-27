@@ -1,13 +1,35 @@
 const OptionsData = require("../models/optionsdataModel");
+const moment = require("moment");
 
 const emitRealTimeData = async (socket) => {
     try {
-        // const timestampThreshold = Date.now() - (4 * 60 * 60 * 1000); // Example: Retrieve data updated within the last minute
-        const data = await OptionsData.find({ underlying_symbol: { $nin: [ "SPX" , "SPXW" ] } }).sort({ timestamp: -1 });
-        socket.emit( "realTimeDataResponse", data);
-    }
-    catch (error) {
-        socket.emit("realTimeDataError", { status:500, error: "Internal Server Error" });
+        // Get the current date
+        const currentDate = moment().startOf("day");
+
+        // Find the latest entry in the database
+        const latestEntry = await OptionsData.findOne().sort({ timestamp: -1 });
+
+        if (!latestEntry) {
+            // If there's no data in the database, return empty array or handle as per your requirement
+            return socket.emit("realTimeDataResponse", []);
+        }
+
+        // Get the date of the latest entry
+        const latestEntryDate = moment.unix(latestEntry.timestamp).startOf("day");
+
+        // Check if the latest entry is from today
+        if (currentDate.isSame(latestEntryDate)) {
+            // If the latest entry is from today, return all data for today
+            const dataForToday = await OptionsData.find({ timestamp: { $gte: latestEntryDate.unix() }, underlying_symbol: { $nin: [ "SPX", "SPXW" ] }  }).sort({ timestamp: -1 });
+            return socket.emit("realTimeDataResponse", dataForToday);
+        } else {
+            // If there's no data for today, return all entries for the last inserted date
+            const dataForLastInsertedDate = await OptionsData.find({ timestamp: { $gte: latestEntryDate.unix(), $lt: latestEntryDate.endOf("day").unix() } , underlying_symbol: { $nin: [ "SPX", "SPXW" ] } }).sort({ timestamp: -1 });
+            return socket.emit("realTimeDataResponse", dataForLastInsertedDate);
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        socket.emit("realTimeDataError", { status: 500, error: "Internal Server Error" });
     }
 };
 
@@ -33,7 +55,7 @@ const watchOptionsDataChanges = async (io) => {
                     }
                 } catch (error) {
                     console.error("Error processing change:", error);
-                    io.emit("realTimeDataError", {status:500, error: "Internal Server Error" });
+                    io.emit("realTimeDataError", { status:500, error: "Internal Server Error" });
                 }
             }
         });
