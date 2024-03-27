@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const uploadToS3 = require("../helpers/uploadToS3");
 const Address = require("../models/addressModel");
+const Subscription = require("../models/subscriptionModel");
 
 const userRegister = async (req, res) => {
     try {
@@ -196,6 +197,7 @@ const resetPassword = async (req, res) => {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
             user.password = hashedPassword;
+            user.isConfirmed = true;
             await user.save();
             return res
                 .status(200)
@@ -319,7 +321,6 @@ const userUpdateEmployment = async (req, res) => {
         }
 
         // Remove password, confirmedCode, and isConfirmed from user object
-       
 
         res.status(200).json({ message: "User updated successfully", user });
     } catch (error) {
@@ -331,8 +332,12 @@ const getUserProfile = async (req, res) => {
     try {
         const user = await User.findById(req.user._id).select("-password -confirmedCode -isConfirmed -id -created_at -updated_at -__v -_id");
         const address = await Address.findOne({ userid: req.user._id }).select("-_id -userid -__v");
-        res.status(200).json({ user, address });
+        const subscription= await Subscription.findOne({ userId: req.user._id }).select("-_id, -userId")
+            .sort({ createdAt: -1 })
+            .exec();
+        res.status(200).json({ user, address , subscription });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
