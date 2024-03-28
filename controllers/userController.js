@@ -241,7 +241,7 @@ const uploadImage=async (req, res) => {
 
 const userUpdatePersonalInfo = async (req, res) => {
     const userId = req.user._id;
-    const { name, phoneNumbar, address, email } = req.body;
+    const { name, phoneNumber, address, email } = req.body;
 
     try {
         // Check if the provided email is already associated with another user
@@ -253,7 +253,7 @@ const userUpdatePersonalInfo = async (req, res) => {
         }
 
         // Update user data
-        const updatedUser = await User.findByIdAndUpdate(userId, { name, phoneNumbar, email }, { new: true })
+        const updatedUser = await User.findByIdAndUpdate(userId, { name, phoneNumber, email }, { new: true })
             .select("-password -confirmedCode -isConfirmed -id -created_at -updated_at -__v -_id");
 
         // Find or create address data for the user
@@ -305,9 +305,9 @@ const userUpdateEmployment = async (req, res) => {
         user = await User.findByIdAndUpdate(id, {
             $set: {
                 affiliation: {
-                    q1: affiliation?.q1 || user.affiliation?.q1,
-                    q2: affiliation?.q2 || user.affiliation?.q2,
-                    q3: affiliation?.q3 || user.affiliation?.q3
+                    q1: affiliation?.q1 ,
+                    q2: affiliation?.q2 ,
+                    q3: affiliation?.q3
                 },
                 employmentStatus: employmentStatus || user.employmentStatus,
                 businessName: businessName || user.businessName,
