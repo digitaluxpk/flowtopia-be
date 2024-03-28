@@ -55,10 +55,11 @@ const webhook= async (req, res) => {
             res.status(404).json({ status: 404, message: "Payment failed" });
 
         }
+        const id=event.data.object.customer;
         // Handle the payment success event
         if (event.type === "checkout.session.completed" || event.type === "payment_intent.succeeded" || event.type === "invoice.payment_succeeded") {
             await Subscription.create(
-                { userId: customerId, isActive:true, endDate: new Date(new Date().setDate(new Date().getDate() + 30)), startDate: new Date(), type: "monthly" },
+                { userId: customerId, isActive:true, endDate: new Date(new Date().setDate(new Date().getDate() + 30)), startDate: new Date(), type: "monthly" , customerId:id },
                 { new: true }
             );
 
@@ -71,4 +72,56 @@ const webhook= async (req, res) => {
     }
 };
 
-module.exports = { createCheckoutSession, webhook };
+const cancelSubscription = async (customerId) => {
+    try {
+        // Retrieve the customer's subscription
+        const subscriptions = await stripe.subscriptions.list({
+            customer: customerId,
+            // Only retrieve active subscriptions
+            status: "active",
+            limit: 1 // Limit to 1 subscription (assuming the user has only one subscription)
+        });
+
+        // If there's an active subscription, cancel it
+        if (subscriptions.data.length > 0) {
+            const subscriptionId = subscriptions.data[0].id;
+            await stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true });
+            return true; // Subscription canceled successfully
+        } else {
+            return false; // No active subscription found
+        }
+    } catch (error) {
+        console.error("Error canceling subscription:", error);
+        throw new Error("Failed to cancel subscription");
+    }
+};
+
+const cancelSubscriptionController = async (req, res) => {
+    const { id } = req.user;
+    const subData=await Subscription
+        .findOne({ userId: id }).select("-_id, -userId")
+        .sort({ createdAt: -1 })
+        .exec();
+
+    try {
+
+        const result = await cancelSubscription(subData.customerId);
+
+        if (result) {
+            await User.findOneAndUpdate({ _id: id }, { subscriptionStatus: false });
+
+            await Subscription.findOneAndUpdate({ userId: id, isActive: true }, { isActive: false });
+            res.status(200).json({ message: "Subscription canceled successfully" });
+
+        }
+        else {
+            res.status(404).json({ error: "No active subscription found" });
+        }
+    }
+
+    catch (error) {
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+module.exports = { createCheckoutSession, webhook ,cancelSubscriptionController };
