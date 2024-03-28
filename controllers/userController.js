@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const uploadToS3 = require("../helpers/uploadToS3");
 const Address = require("../models/addressModel");
+const Subscription = require("../models/subscriptionModel");
 
 const userRegister = async (req, res) => {
     try {
@@ -196,6 +197,7 @@ const resetPassword = async (req, res) => {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
             user.password = hashedPassword;
+            user.isConfirmed = true;
             await user.save();
             return res
                 .status(200)
@@ -239,7 +241,7 @@ const uploadImage=async (req, res) => {
 
 const userUpdatePersonalInfo = async (req, res) => {
     const userId = req.user._id;
-    const { name, phoneNumbar, address, email } = req.body;
+    const { name, phoneNumber, address, email } = req.body;
 
     try {
         // Check if the provided email is already associated with another user
@@ -251,7 +253,7 @@ const userUpdatePersonalInfo = async (req, res) => {
         }
 
         // Update user data
-        const updatedUser = await User.findByIdAndUpdate(userId, { name, phoneNumbar, email }, { new: true })
+        const updatedUser = await User.findByIdAndUpdate(userId, { name, phoneNumber, email }, { new: true })
             .select("-password -confirmedCode -isConfirmed -id -created_at -updated_at -__v -_id");
 
         // Find or create address data for the user
@@ -303,9 +305,9 @@ const userUpdateEmployment = async (req, res) => {
         user = await User.findByIdAndUpdate(id, {
             $set: {
                 affiliation: {
-                    q1: affiliation?.q1 || user.affiliation?.q1,
-                    q2: affiliation?.q2 || user.affiliation?.q2,
-                    q3: affiliation?.q3 || user.affiliation?.q3
+                    q1: affiliation?.q1 ,
+                    q2: affiliation?.q2 ,
+                    q3: affiliation?.q3
                 },
                 employmentStatus: employmentStatus || user.employmentStatus,
                 businessName: businessName || user.businessName,
@@ -319,7 +321,6 @@ const userUpdateEmployment = async (req, res) => {
         }
 
         // Remove password, confirmedCode, and isConfirmed from user object
-       
 
         res.status(200).json({ message: "User updated successfully", user });
     } catch (error) {
@@ -331,8 +332,12 @@ const getUserProfile = async (req, res) => {
     try {
         const user = await User.findById(req.user._id).select("-password -confirmedCode -isConfirmed -id -created_at -updated_at -__v -_id");
         const address = await Address.findOne({ userid: req.user._id }).select("-_id -userid -__v");
-        res.status(200).json({ user, address });
+        const subscription= await Subscription.findOne({ userId: req.user._id }).select("-_id, -userId")
+            .sort({ createdAt: -1 })
+            .exec();
+        res.status(200).json({ user, address , subscription });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
